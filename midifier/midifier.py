@@ -1,13 +1,16 @@
-from midi import Midi, Formats, program_change_event, Track, set_volume_event, Note
+from midi import Midi, Formats
+from track import Track
+from events import (
+  NoteOnEvent, NoteOffEvent, ProgramChangeEvent, SetVolumeEvent)
+from instruments import instruments
 
 track = Track()
-track.add_event(program_change_event(0, 0, 48))
-track.add_event(set_volume_event(0, 0, 0x32))
-#import pudb; pu.db
-track.add_event(Note.from_language('C4', 0).on_event(1))
-track.add_event(Note.from_language('G4', 20).on_event(1))
-track.add_event(Note.from_language('C4', 10).off_event(1))
-track.add_event(Note.from_language('G4', 20).off_event(1))
+track.add_event(ProgramChangeEvent(0, 0, instruments['Bright Acoustic Piano']))
+track.add_event(SetVolumeEvent(0, 0, 0x32))
+track.add_event(NoteOnEvent(0, 0, 'c4', 0x42))
+track.add_event(NoteOnEvent(10, 0, 'g4', 0x42))
+track.add_event(NoteOffEvent(10, 0, 'c4', 0x42))
+track.add_event(NoteOffEvent(5, 0, 'g4', 0x42))
 
 midi = Midi(Formats.SINGLE_TRACK, [track])
-midi.write('test.mid')
+midi.write('test2.mid')
