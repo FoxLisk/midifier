@@ -68,3 +68,17 @@ class MetaEvent(Event):
 
 TRACK_END_EVENT = MetaEvent(0x2f)
 
+MICROSECONDS_PER_MINUTE = 60000000
+class TempoEvent(Event):
+  def __init__(self, bpm):
+    # microseconds per quarter note
+    self.mpqn = MICROSECONDS_PER_MINUTE / bpm
+
+  def encode(self):
+    _bytes = '\x00\xff\x51\x03'
+    _bytes += _int_to_bytes(self.mpqn, 3)
+    return _bytes
+
+  def len_in_bytes(self):
+    return 7
+
