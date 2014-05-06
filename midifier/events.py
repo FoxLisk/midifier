@@ -33,7 +33,25 @@ def curry(func, arg):
 
 def note_from_language(note_name):
   letter = note_name[:-1]
-  num = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'].index(letter.lower())
+  num = {'c': 0,
+   'c#': 1,
+   'db': 1,
+   'd': 2,
+   'd#': 3,
+   'eb': 3,
+   'e': 4,
+   'f': 5,
+   'f#': 6,
+   'gb': 6,
+   'g': 7,
+   'g#': 8,
+   'ab': 8,
+   'a': 9,
+   'a#': 10,
+   'bb': 10,
+   'b': 11
+   }[letter.lower()]
+
   octave = int(note_name[-1])
   return octave*12 + num
 
