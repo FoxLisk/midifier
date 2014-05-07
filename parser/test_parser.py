@@ -41,6 +41,11 @@ class ParserTest(unittest.TestCase):
     p = Parser('1 !== 3')
     self.assertEqual(None, p.next_token())
 
+  def test_comments(self):
+    p = Parser(' a = 1; //a = 1')
+    self.assertEqual(Events.ASSIGNMENT, p.next_token())
+    self.assertEqual(None, p.next_token())
+
 
 if __name__ == '__main__':
   unittest.main()

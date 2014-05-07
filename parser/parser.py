@@ -73,7 +73,36 @@ class Parser(object):
       elif c == '\\':
         self.next_char()
 
+  def _parse_line_comment(self):
+    assert self.current_char == '/'
+    self.next_char()
+    while self.current_char != '\n':
+      self.next_char()
+
+  def _parse_block_comment(self):
+    assert self.current_char == '*'
+    self.next_char()
+    while True:
+      if self.current_char == '*' and self.peek() == '/':
+        self.next_char()
+        self.next_char()
+        return
+      self.next_char()
+
+  def _parse_comment(self):
+    assert self.current_char == '/'
+    assert self.peek() in '/*'
+    c = self.next_char()
+    if c == '/':
+      self._parse_line_comment()
+    else:
+      self._parse_block_comment()
+
   def _parse_token(self):
+    if self.current_char == '/':
+      if self.peek() in '/*':
+        self._parse_comment()
+        return ''
     w = self.current_char
     self.next_char()
     while self.current_char in '+*/-%<>&^|=':
