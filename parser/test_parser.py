@@ -42,8 +42,23 @@ class ParserTest(unittest.TestCase):
     self.assertEqual(None, p.next_token())
 
   def test_comments(self):
-    p = Parser(' a = 1; //a = 1')
+    p = Parser(''' a = 1; //a = 1
+    function() {} ''')
     self.assertEqual(Events.ASSIGNMENT, p.next_token())
+    self.assertEqual(Events.FUNCTION_START, p.next_token())
+    self.assertEqual(Events.FUNCTION_END, p.next_token())
+    self.assertEqual(None, p.next_token())
+
+    p = Parser(''' a = 1; /*
+    fkljasdf
+    asdfljaslkdjfasdjfas
+    dfthis is all garbage *
+    lets thro / in some random // stuff// around here
+    let's also put in an assignemtn x = 1; function() blargh*/
+    function() {}''')
+    self.assertEqual(Events.ASSIGNMENT, p.next_token())
+    self.assertEqual(Events.FUNCTION_START, p.next_token())
+    self.assertEqual(Events.FUNCTION_END, p.next_token())
     self.assertEqual(None, p.next_token())
 
 
