@@ -20,5 +20,10 @@ class ParserTest(unittest.TestCase):
     self.assertEqual(Events.FUNCTION_END, p.next_token())
     self.assertEqual(None, p.next_token())
 
+    p = Parser("function() { 'hello}' }")
+    self.assertEqual(Events.FUNCTION_START, p.next_token())
+    self.assertEqual(Events.FUNCTION_END, p.next_token())
+    self.assertEqual(None, p.next_token())
+
 if __name__ == '__main__':
   unittest.main()
