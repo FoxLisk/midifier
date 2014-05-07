@@ -25,5 +25,22 @@ class ParserTest(unittest.TestCase):
     self.assertEqual(Events.FUNCTION_END, p.next_token())
     self.assertEqual(None, p.next_token())
 
+  def test_assignments(self):
+    for assignment in [
+      '+=', '*=', '/=', '-=', '=', '%=', '<<=',
+      '>>=', '>>>=', '&=', '^=', '|=']:
+      p = Parser(' x %s 32' % assignment)
+      self.assertEqual(Events.ASSIGNMENT, p.next_token())
+
+    p = Parser('1 == 2')
+    self.assertEqual(None, p.next_token())
+    p = Parser('1 === 3')
+    self.assertEqual(None, p.next_token())
+    p = Parser('1 != 2')
+    self.assertEqual(None, p.next_token())
+    p = Parser('1 !== 3')
+    self.assertEqual(None, p.next_token())
+
+
 if __name__ == '__main__':
   unittest.main()

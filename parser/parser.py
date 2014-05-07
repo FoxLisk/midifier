@@ -73,18 +73,29 @@ class Parser(object):
       elif c == '\\':
         self.next_char()
 
+  def _parse_token(self):
+    w = self.current_char
+    self.next_char()
+    while self.current_char in '+*/-%<>&^|=':
+      w += self.current_char
+      self.next_char()
+    return w
+
   def next_token(self):
     if self.is_eof:
       return None
+
     try:
       return self._next_token()
+    except EOF:
+      return None
     except Exception as e:
       import traceback
       traceback.print_exc()
       return Events.INVALID_SOURCE
 
   def _next_token(self):
-    token_starts = '+*/-=%<>&^|'
+    token_starts = '+*/-=%<>&^|!'
     scope_starts = ['if', 'else', 'for', 'while', 'do-while', 'try', 'catch', 'finally', 'switch', 'with']
     assignment_operators = ['+=', '*=', '/=', '-=', '=', '%=', '<<=', '>>=', '>>>=', '&=', '^=', '|=']
     while True:
@@ -100,7 +111,7 @@ class Parser(object):
       elif self.current_char in ['"', "'"]:
         self._parse_string()
       elif self.current_char in token_starts:
-        token = self.parse_token()
+        token = self._parse_token()
         if token in assignment_operators:
           return Events.ASSIGNMENT
       elif self.current_char == '}':
