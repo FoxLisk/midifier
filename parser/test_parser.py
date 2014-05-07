@@ -61,6 +61,11 @@ class ParserTest(unittest.TestCase):
     self.assertEqual(Events.FUNCTION_END, p.next_token())
     self.assertEqual(None, p.next_token())
 
+  def test_objects(self):
+    p = Parser(' function() { x = {} }; ')
+    self.assertEqual(Events.FUNCTION_START, p.next_token())
+    self.assertEqual(Events.ASSIGNMENT, p.next_token())
+    self.assertEqual(Events.FUNCTION_END, p.next_token())
 
 if __name__ == '__main__':
   unittest.main()

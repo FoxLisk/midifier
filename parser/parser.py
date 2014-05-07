@@ -29,6 +29,7 @@ class Parser(object):
     self.scope_stack = []
     self.word_start_re = re.compile(r'[^\d\W]', re.UNICODE)
     self.word_cont_re = re.compile(r'\w', re.UNICODE)
+    self.waiting_for_brace = False
 
   def next_char(self):
     self.pos += 1
@@ -133,9 +134,11 @@ class Parser(object):
         word = self._parse_word()
         if word == 'function':
           self.scope_stack.append('function')
+          self.waiting_for_brace = True
           return Events.FUNCTION_START
         elif word in scope_starts:
           self.scope_stack.append('other')
+          self.waiting_for_brace = True
           return Events.OTHER_SCOPE_START
       elif self.current_char in ['"', "'"]:
         self._parse_string()
@@ -143,6 +146,12 @@ class Parser(object):
         token = self._parse_token()
         if token in assignment_operators:
           return Events.ASSIGNMENT
+      elif self.current_char == '{':
+        if self.waiting_for_brace:
+          self.waiting_for_brace = False
+        else:
+          self.scope_stack.append('object')
+        self.next_char()
       elif self.current_char == '}':
         last_scope = self.scope_stack.pop()
         try:
@@ -152,7 +161,9 @@ class Parser(object):
           pass
         if last_scope == 'function':
           return Events.FUNCTION_END
-        else:
+        elif last_scope == 'other':
           return Events.OTHER_SCOPE_END
+        elif last_scope == 'object':
+          continue
       else:
         self.next_char()
