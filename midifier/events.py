@@ -32,6 +32,8 @@ def curry(func, arg):
   return lambda *args: func(arg, *args)
 
 def note_from_language(note_name):
+  if isinstance(note_name, int):
+    return note_name
   letter = note_name[:-1]
   num = {'c': 0,
    'c#': 1,
