@@ -1,3 +1,5 @@
+from abc import ABCMeta, abstractmethod
+
 from utils import _int_to_bytes
 
 
@@ -6,10 +8,17 @@ def encode_ticks(ticks):
     raise Exception('Currently does not support waiting more than %d ticks' % (0b10000000 - 1))
   return _int_to_bytes(ticks, 1)
 
-class Event(object):
-  def encode(self): abstract
 
-  def len_in_bytes(self): abstract
+class Event(object):
+  __metaclass__ = ABCMeta
+
+  @abstractmethod
+  def encode(self):
+    pass
+
+  @abstractmethod
+  def len_in_bytes(self):
+    pass
   
 
 class ChannelEvent(Event):
