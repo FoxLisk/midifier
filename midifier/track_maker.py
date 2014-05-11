@@ -46,6 +46,10 @@ class TrackMaker(object):
 
       return key
 
+  def select_note(self, key, last_note):
+    if last_note is None:
+      return random.choice(key)
+    return key[(key.index(last_note) + 1) % len(key)]
 
   def make_track(self):
     track = Track()
@@ -56,7 +60,7 @@ class TrackMaker(object):
     used_up_channels = []
 
     key = self._generate_key()
-    last_note = random.choice(key)
+    last_note = self.select_note(key, None)
     frame = StackFrame(track.new_channel(), key, last_note)
 
     frame.channel.add_event(ProgramChangeEvent, 0, random.choice(instruments.values()))
@@ -76,7 +80,7 @@ class TrackMaker(object):
         # create a new channel, a new key, and the last note put on this channel
         # start that note playing
         key = self._generate_key(depth=len(channel_stack))
-        last_note = random.choice(key)
+        last_note = self.select_note(key, None)
         channel_stack.append(frame)
         if used_up_channels:
           frame = used_up_channels.pop()
@@ -86,12 +90,12 @@ class TrackMaker(object):
         frame.channel.add_event(SetVolumeEvent, 0, 0x32)
         frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
       elif tok == Tokens.FUNCTION_END:
-        frame.channel.add_event(NoteOffEvent, self.eighth_note, last_note, 0x42)
+        frame.channel.add_event(NoteOffEvent, self.eighth_note, frame.last_note, 0x42)
         used_up_channels.append(frame)
         frame = channel_stack.pop()
       elif tok == Tokens.ASSIGNMENT:
-        frame.channel.add_event(NoteOffEvent, self.eighth_note, last_note, 0x42)
-        frame.last_note = frame.key[(frame.key.index(frame.last_note) + 1) % len(frame.key)]
+        frame.channel.add_event(NoteOffEvent, self.eighth_note, frame.last_note, 0x42)
+        frame.last_note = self.select_note(frame.key, frame.last_note)
         frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
       elif tok == Tokens.OTHER_SCOPE_START:
         pass
