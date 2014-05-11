@@ -50,7 +50,7 @@ class TrackMaker(object):
   def select_note(self, key, last_note):
     if last_note is None:
       return random.choice(key)
-    return key[(key.index(last_note) + 1) % len(key)]
+    return key[(key.index(last_note) + random.randint(-2, 2)) % len(key)]
 
   def make_track(self):
     if not self.unstable:
