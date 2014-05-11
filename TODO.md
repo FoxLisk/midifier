@@ -11,4 +11,3 @@
   but only if anyone actually uses this dumb thing, which they wont.
 * Doesn't currently handle one-statement if/else/etc blocks (i.e. without `{}`). I think it is reasonable to consider this a syntax error.
 * Come up with some awful dissonant shit to play when a syntax error is encountered. Play it when a syntax error is encountered.
-* There's probably something more interesting than just playing scales
