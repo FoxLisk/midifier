@@ -31,19 +31,19 @@ class Parser(object):
     self.word_cont_re = re.compile(r'\w', re.UNICODE)
     self.waiting_for_brace = False
 
+  @property
+  def is_eof(self):
+    return self.pos >= len(self.content)
+
   def next_char(self):
     self.pos += 1
-    if self.pos >= len(self.content):
+    if self.is_eof:
       raise EOF()
     return self.content[self.pos]
 
   @property
   def current_char(self):
     return self.content[self.pos]
-
-  @property
-  def is_eof(self):
-    return self.pos >= len(self.content)
 
   def peek(self):
     return self.content[self.pos + 1]

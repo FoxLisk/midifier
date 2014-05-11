@@ -25,6 +25,13 @@ class ParserTest(unittest.TestCase):
     self.assertEqual(Events.FUNCTION_END, p.next_token())
     self.assertEqual(None, p.next_token())
 
+  def test_string_escape_quotes(self):
+    p = Parser('f = function() { return "This is a close-brace: \\"}\\"." };')
+    self.assertEqual(Events.ASSIGNMENT, p.next_token())
+    self.assertEqual(Events.FUNCTION_START, p.next_token())
+    self.assertEqual(Events.FUNCTION_END, p.next_token())
+    self.assertEqual(None, p.next_token())
+
   def test_assignments(self):
     for assignment in [
       '+=', '*=', '/=', '-=', '=', '%=', '<<=',
