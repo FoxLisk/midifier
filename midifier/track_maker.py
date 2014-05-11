@@ -23,6 +23,7 @@ class TrackMaker(object):
     self.ticks_per_quarter_note = ticks_per_quarter_note
     self.eighth_note = self.ticks_per_quarter_note / 2
     self.sixteenth_note = self.ticks_per_quarter_note / 4
+    random.seed(self.content)
 
 
   def _generate_key(self, depth=0):
