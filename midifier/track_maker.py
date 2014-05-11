@@ -11,6 +11,10 @@ class StackFrame(object):
     self.key = key
     self.last_note = last_note
 
+  def __str__(self):
+    return 'Channel %d | key %s | last_note %d' % (
+        self.channel.channel, self.key, self.last_note)
+
 class TrackMaker(object):
 
   def __init__(self, filename, content, ticks_per_quarter_note):
@@ -21,29 +25,37 @@ class TrackMaker(object):
     self.sixteenth_note = self.ticks_per_quarter_note / 4
 
 
-  def _generate_key(self, note=None):
+  def _generate_key(self, depth=0):
       '''
       generates a major key starting from the given note
       if note is None, generates a random key
       '''
-      if note is None:
-        note = random.randint(0, 127)
-      if isinstance(note, basestring):
-        note = from_language(note)
+      note = random.randint(48, 72) + depth
 
-      key = [note, note+2, note+4, note+5, note+7, note+9, note+11, note+12]
+      note = note + depth + 5 # increase key as we move up in scope
+      
+      major_offsets = [0, 2, 4, 5, 7, 9, 11, 12]
+      minor_offsets = [0, 1, 3, 5, 6, 8, 10, 12]
+
+      if random.randint(0, 10) > depth:
+        offsets = major_offsets
+      else:
+        offsets = minor_offsets
+
+      key = [note + offset for offset in offsets]
+
       return key
 
 
   def make_track(self):
     track = Track()
-    track.add_event(TempoEvent(60)) #bpm
+    track.add_event(TempoEvent(80)) #bpm
     parser = Parser(self.content)
 
     channel_stack = []
     used_up_channels = []
 
-    key = self._generate_key(random.randint(48, 72))
+    key = self._generate_key()
     last_note = random.choice(key)
     frame = StackFrame(track.new_channel(), key, last_note)
 
@@ -63,7 +75,7 @@ class TrackMaker(object):
       if tok == Tokens.FUNCTION_START:
         # create a new channel, a new key, and the last note put on this channel
         # start that note playing
-        key = self._generate_key(random.randint(48, 72))
+        key = self._generate_key(depth=len(channel_stack))
         last_note = random.choice(key)
         channel_stack.append(frame)
         if used_up_channels:
@@ -72,15 +84,15 @@ class TrackMaker(object):
           frame = StackFrame(track.new_channel(), key, last_note)
         frame.channel.add_event(ProgramChangeEvent, 0, random.choice(instruments.values()))
         frame.channel.add_event(SetVolumeEvent, 0, 0x32)
-        frame.channel.add_event(NoteOnEvent, 0, last_note, 0x42)
+        frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
       elif tok == Tokens.FUNCTION_END:
         frame.channel.add_event(NoteOffEvent, self.eighth_note, last_note, 0x42)
         used_up_channels.append(frame)
         frame = channel_stack.pop()
       elif tok == Tokens.ASSIGNMENT:
         frame.channel.add_event(NoteOffEvent, self.eighth_note, last_note, 0x42)
-        last_note = frame.key[(frame.key.index(frame.last_note) + 1) % len(frame.key)]
-        frame.channel.add_event(NoteOnEvent, 0, last_note, 0x42)
+        frame.last_note = frame.key[(frame.key.index(frame.last_note) + 1) % len(frame.key)]
+        frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
       elif tok == Tokens.OTHER_SCOPE_START:
         pass
       elif tok == Tokens.OTHER_SCOPE_END:
