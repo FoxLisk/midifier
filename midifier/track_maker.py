@@ -96,7 +96,6 @@ class TrackMaker(object):
 
         channel_stack.append(frame)
         if len(channel_stack) > max_depth:
-          print 'Hit depth %d on line %d\n(%s)' % (len(channel_stack), parser.line_no, parser.scope_stack)
           max_depth = len(channel_stack)
         if used_up_channels:
           frame = used_up_channels.pop()
@@ -115,9 +114,7 @@ class TrackMaker(object):
         frame.last_note = self.select_note(frame.key, frame.last_note)
         frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
         self.maybe_update_stack(channel_stack)
-      elif tok == Tokens.OTHER_SCOPE_START:
-        pass
-      elif tok == Tokens.OTHER_SCOPE_END:
+      elif tok == Tokens.OTHER_KEYWORD:
         pass
       elif tok == Tokens.INVALID_SOURCE:
         print 'ERROR'

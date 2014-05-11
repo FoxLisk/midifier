@@ -7,10 +7,8 @@ class ParserTest(unittest.TestCase):
   def test_scopes_end(self):
     p = Parser(' function() { if (1) { } else { } }')
     self.assertEqual(Events.FUNCTION_START, p._next_token())
-    self.assertEqual(Events.OTHER_SCOPE_START, p._next_token())
-    self.assertEqual(Events.OTHER_SCOPE_END, p._next_token())
-    self.assertEqual(Events.OTHER_SCOPE_START, p._next_token())
-    self.assertEqual(Events.OTHER_SCOPE_END, p._next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p._next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p._next_token())
     self.assertEqual(Events.FUNCTION_END, p._next_token())
 
   def test_strings(self):
@@ -69,8 +67,8 @@ class ParserTest(unittest.TestCase):
 
   def test_do_while(self):
     p = Parser(''' do {something} while (true); ''')
-    self.assertEqual(Events.OTHER_SCOPE_START, p.next_token())
-    self.assertEqual(Events.OTHER_SCOPE_END, p.next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p.next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p.next_token())
     self.assertEqual(None, p.next_token())
 
   def test_objects(self):
@@ -91,28 +89,26 @@ class ParserTest(unittest.TestCase):
     else if ()
       stmt
     function() {}''')
-    self.assertEqual(Events.OTHER_SCOPE_START, p.next_token())
-    self.assertEqual(Events.OTHER_SCOPE_END, p.next_token())
-    self.assertEqual(Events.OTHER_SCOPE_START, p.next_token())
-    self.assertEqual(Events.OTHER_SCOPE_END, p.next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p.next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p.next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p.next_token())
     self.assertEqual(Events.FUNCTION_START, p.next_token())
     self.assertEqual(Events.FUNCTION_END, p.next_token())
 
-  #def test_one_line_if(self):
-  #  p = Parser('''
-  #  if (some_condition)
-  #    console.log('I really should have used curlies!');
-  #  s = {};
-  #  function foo() {
-  #    console.log('What even happens now?');
-  #  }''')
+  def test_one_line_if(self):
+    p = Parser('''
+    if (some_condition)
+      console.log('I really should have used curlies!');
+    s = {};
+    function foo() {
+      console.log('What even happens now?');
+    }''')
 
-  #  self.assertEqual(Events.OTHER_SCOPE_START, p.next_token())
-  #  self.assertEqual(Events.OTHER_SCOPE_END, p.next_token())
-  #  self.assertEqual(Events.ASSIGNMENT, p.next_token())
-  #  self.assertEqual(Events.FUNCTION_START, p.next_token())
-  #  self.assertEqual(Events.FUNCTION_END, p.next_token())
-  #  self.assertEqual(None, p.next_token())
+    self.assertEqual(Events.OTHER_KEYWORD, p.next_token())
+    self.assertEqual(Events.ASSIGNMENT, p.next_token())
+    self.assertEqual(Events.FUNCTION_START, p.next_token())
+    self.assertEqual(Events.FUNCTION_END, p.next_token())
+    self.assertEqual(None, p.next_token())
 
 
 

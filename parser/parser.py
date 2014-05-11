@@ -17,8 +17,7 @@ class Events(object):
   FUNCTION_START = 'fs'
   FUNCTION_END = 'fe'
   ASSIGNMENT = 'a'
-  OTHER_SCOPE_START = 'os'
-  OTHER_SCOPE_END = 'oe'
+  OTHER_KEYWORD = 'ok'
   INVALID_SOURCE = 'is'
 
 
@@ -26,22 +25,11 @@ class Parser(object):
   def __init__(self, content):
     self.content = content
     self.pos = 0
-    self.scope_stack = []
+    self.scope_depth = 0
     self.word_start_re = re.compile(r'[^\d\W]', re.UNICODE)
     self.word_cont_re = re.compile(r'\w', re.UNICODE)
-    self._waiting_for_brace = False
     self.line_no = 1
-    self.waiting_for_while = False
-
-  def get_waiting_for_brace(self):
-    return self._waiting_for_brace
-
-  def set_waiting_for_brace(self, val):
-    #if val == self._waiting_for_brace:
-      #raise Exception("Already waiting for brace %d\n%s" % (self.line_no, self.scope_stack))
-    self._waiting_for_brace = val
-
-  waiting_for_brace = property(get_waiting_for_brace, set_waiting_for_brace)
+    self.num_open_braces = 0
 
   @property
   def is_eof(self):
@@ -132,7 +120,7 @@ class Parser(object):
     try:
       return self._next_token()
     except EOF:
-      if self.scope_stack:
+      if self.scope_depth:
         return Events.INVALID_SOURCE
       return None
     except Exception as e:
@@ -142,25 +130,17 @@ class Parser(object):
 
   def _next_token(self):
     token_starts = '+*/-=%<>&^|!'
-    scope_starts = ['if', 'else', 'for', 'while', 'do', 'try', 'catch', 'finally', 'switch', 'with']
+    keywords = ['if', 'else', 'for', 'while', 'do', 'try', 'catch', 'finally', 'switch', 'with']
     assignment_operators = ['+=', '*=', '/=', '-=', '=', '%=', '<<=', '>>=', '>>>=', '&=', '^=', '|=']
     while True:
       self.skip_whitespace()
       if self.word_start_re.match(self.current_char):
         word = self._parse_word()
         if word == 'function':
-          self.scope_stack.append('function')
-          self.waiting_for_brace = True
+          self.scope_depth += 1
           return Events.FUNCTION_START
-        elif word in scope_starts:
-          if word == 'do':
-            self.waiting_for_while = True
-          elif word == 'while' and self.waiting_for_while:
-            self.waiting_for_while = False
-            continue
-          self.scope_stack.append(word)
-          self.waiting_for_brace = True
-          return Events.OTHER_SCOPE_START
+        elif word in keywords:
+          return Events.OTHER_KEYWORD
       elif self.current_char in ['"', "'"]:
         self._parse_string()
       elif self.current_char in token_starts:
@@ -168,23 +148,24 @@ class Parser(object):
         if token in assignment_operators:
           return Events.ASSIGNMENT
       elif self.current_char == '{':
-        if self.waiting_for_brace:
-          self.waiting_for_brace = False
-        else:
-          self.scope_stack.append('object')
+        self.num_open_braces += 1
         self.next_char()
       elif self.current_char == '}':
-        last_scope = self.scope_stack.pop()
         try:
           self.next_char()
         except EOF:
           # catch it later
           pass
-        if last_scope == 'function':
+
+        return_end = False
+        if self.num_open_braces == self.scope_depth:
+          self.scope_depth -= 1
+          return_end = True
+        self.num_open_braces -= 1
+        if self.num_open_braces < 0:
+          return Events.INVALID_SOURCE
+
+        if return_end:
           return Events.FUNCTION_END
-        elif last_scope == 'object':
-          continue
-        else:
-          return Events.OTHER_SCOPE_END
       else:
         self.next_char()
