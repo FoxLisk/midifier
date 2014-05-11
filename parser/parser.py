@@ -31,6 +31,7 @@ class Parser(object):
     self.word_cont_re = re.compile(r'\w', re.UNICODE)
     self._waiting_for_brace = False
     self.line_no = 1
+    self.waiting_for_while = False
 
   def get_waiting_for_brace(self):
     return self._waiting_for_brace
@@ -152,6 +153,11 @@ class Parser(object):
           self.waiting_for_brace = True
           return Events.FUNCTION_START
         elif word in scope_starts:
+          if word == 'do':
+            self.waiting_for_while = True
+          elif word == 'while' and self.waiting_for_while:
+            self.waiting_for_while = False
+            continue
           self.scope_stack.append(word)
           self.waiting_for_brace = True
           return Events.OTHER_SCOPE_START
