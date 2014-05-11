@@ -29,7 +29,18 @@ class Parser(object):
     self.scope_stack = []
     self.word_start_re = re.compile(r'[^\d\W]', re.UNICODE)
     self.word_cont_re = re.compile(r'\w', re.UNICODE)
-    self.waiting_for_brace = False
+    self._waiting_for_brace = False
+    self.line_no = 1
+
+  def get_waiting_for_brace(self):
+    return self._waiting_for_brace
+
+  def set_waiting_for_brace(self, val):
+    if val == self._waiting_for_brace:
+      raise Exception("Already waiting for brace %d\n%s" % (self.line_no, self.scope_stack))
+    self._waiting_for_brace = val
+
+  waiting_for_brace = property(get_waiting_for_brace, set_waiting_for_brace)
 
   @property
   def is_eof(self):
@@ -39,6 +50,8 @@ class Parser(object):
     self.pos += 1
     if self.is_eof:
       raise EOF()
+    if self.content[self.pos] == '\n':
+      self.line_no += 1
     return self.content[self.pos]
 
   @property
@@ -118,6 +131,8 @@ class Parser(object):
     try:
       return self._next_token()
     except EOF:
+      if self.scope_stack:
+        return Events.INVALID_SOURCE
       return None
     except Exception as e:
       import traceback
@@ -126,7 +141,7 @@ class Parser(object):
 
   def _next_token(self):
     token_starts = '+*/-=%<>&^|!'
-    scope_starts = ['if', 'else', 'for', 'while', 'do-while', 'try', 'catch', 'finally', 'switch', 'with']
+    scope_starts = ['if', 'else', 'for', 'while', 'do', 'try', 'catch', 'finally', 'switch', 'with']
     assignment_operators = ['+=', '*=', '/=', '-=', '=', '%=', '<<=', '>>=', '>>>=', '&=', '^=', '|=']
     while True:
       self.skip_whitespace()
@@ -137,7 +152,7 @@ class Parser(object):
           self.waiting_for_brace = True
           return Events.FUNCTION_START
         elif word in scope_starts:
-          self.scope_stack.append('other')
+          self.scope_stack.append(word)
           self.waiting_for_brace = True
           return Events.OTHER_SCOPE_START
       elif self.current_char in ['"', "'"]:
@@ -161,9 +176,9 @@ class Parser(object):
           pass
         if last_scope == 'function':
           return Events.FUNCTION_END
-        elif last_scope == 'other':
-          return Events.OTHER_SCOPE_END
         elif last_scope == 'object':
           continue
+        else:
+          return Events.OTHER_SCOPE_END
       else:
         self.next_char()

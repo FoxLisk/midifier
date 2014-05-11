@@ -52,6 +52,14 @@ class TrackMaker(object):
       return random.choice(key)
     return key[(key.index(last_note) + random.randint(-2, 2)) % len(key)]
 
+  def maybe_update_stack(self, stack):
+    for depth, frame in enumerate(reversed(stack)):
+      probability = 2**(min(depth+1, 5))
+      if random.randint(1, probability) == 1: #lol
+        frame.channel.add_event(NoteOffEvent, 0, frame.last_note, 0x42)
+        frame.last_note = self.select_note(frame.key, frame.last_note)
+        frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
+
   def make_track(self):
     if not self.unstable:
       random.seed(self.content)
@@ -78,13 +86,18 @@ class TrackMaker(object):
 
     # when a scope ends we end its current note
     tok = parser.next_token()
+    max_depth = 0
     while tok is not None:
       if tok == Tokens.FUNCTION_START:
         # create a new channel, a new key, and the last note put on this channel
         # start that note playing
         key = self._generate_key(depth=len(channel_stack))
         last_note = self.select_note(key, None)
+
         channel_stack.append(frame)
+        if len(channel_stack) > max_depth:
+          print 'Hit depth %d on line %d' % (len(channel_stack), parser.line_no)
+          max_depth = len(channel_stack)
         if used_up_channels:
           frame = used_up_channels.pop()
         else:
@@ -92,6 +105,7 @@ class TrackMaker(object):
         frame.channel.add_event(ProgramChangeEvent, 0, random.choice(instruments.values()))
         frame.channel.add_event(SetVolumeEvent, 0, 0x32)
         frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
+        self.maybe_update_stack(channel_stack)
       elif tok == Tokens.FUNCTION_END:
         frame.channel.add_event(NoteOffEvent, self.eighth_note, frame.last_note, 0x42)
         used_up_channels.append(frame)
@@ -100,11 +114,12 @@ class TrackMaker(object):
         frame.channel.add_event(NoteOffEvent, self.eighth_note, frame.last_note, 0x42)
         frame.last_note = self.select_note(frame.key, frame.last_note)
         frame.channel.add_event(NoteOnEvent, 0, frame.last_note, 0x42)
+        self.maybe_update_stack(channel_stack)
       elif tok == Tokens.OTHER_SCOPE_START:
         pass
       elif tok == Tokens.OTHER_SCOPE_END:
         pass
       elif tok == Tokens.INVALID_SOURCE:
-        pass
+        print 'ERROR'
       tok = parser.next_token()
     return track
