@@ -17,13 +17,13 @@ class StackFrame(object):
 
 class TrackMaker(object):
 
-  def __init__(self, filename, content, ticks_per_quarter_note):
+  def __init__(self, filename, content, ticks_per_quarter_note, unstable):
     self.filename = filename
     self.content = content
     self.ticks_per_quarter_note = ticks_per_quarter_note
     self.eighth_note = self.ticks_per_quarter_note / 2
     self.sixteenth_note = self.ticks_per_quarter_note / 4
-    random.seed(self.content)
+    self.unstable = unstable
 
 
   def _generate_key(self, depth=0):
@@ -53,8 +53,10 @@ class TrackMaker(object):
     return key[(key.index(last_note) + 1) % len(key)]
 
   def make_track(self):
+    if not self.unstable:
+      random.seed(self.content)
     track = Track()
-    track.add_event(TempoEvent(80)) #bpm
+    track.add_event(TempoEvent(100)) #bpm
     parser = Parser(self.content)
 
     channel_stack = []
