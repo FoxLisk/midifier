@@ -84,6 +84,20 @@ class ParserTest(unittest.TestCase):
     self.assertEqual(Events.FUNCTION_START, p.next_token())
     self.assertEqual(Events.INVALID_SOURCE, p.next_token())
 
+  def test_elsif_nonsense(self):
+    p = Parser('''
+    if ()
+     stmt
+    else if ()
+      stmt
+    function() {}''')
+    self.assertEqual(Events.OTHER_SCOPE_START, p.next_token())
+    self.assertEqual(Events.OTHER_SCOPE_END, p.next_token())
+    self.assertEqual(Events.OTHER_SCOPE_START, p.next_token())
+    self.assertEqual(Events.OTHER_SCOPE_END, p.next_token())
+    self.assertEqual(Events.FUNCTION_START, p.next_token())
+    self.assertEqual(Events.FUNCTION_END, p.next_token())
+
   #def test_one_line_if(self):
   #  p = Parser('''
   #  if (some_condition)

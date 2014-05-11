@@ -96,7 +96,7 @@ class TrackMaker(object):
 
         channel_stack.append(frame)
         if len(channel_stack) > max_depth:
-          print 'Hit depth %d on line %d' % (len(channel_stack), parser.line_no)
+          print 'Hit depth %d on line %d\n(%s)' % (len(channel_stack), parser.line_no, parser.scope_stack)
           max_depth = len(channel_stack)
         if used_up_channels:
           frame = used_up_channels.pop()

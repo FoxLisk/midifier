@@ -37,8 +37,8 @@ class Parser(object):
     return self._waiting_for_brace
 
   def set_waiting_for_brace(self, val):
-    if val == self._waiting_for_brace:
-      raise Exception("Already waiting for brace %d\n%s" % (self.line_no, self.scope_stack))
+    #if val == self._waiting_for_brace:
+      #raise Exception("Already waiting for brace %d\n%s" % (self.line_no, self.scope_stack))
     self._waiting_for_brace = val
 
   waiting_for_brace = property(get_waiting_for_brace, set_waiting_for_brace)
