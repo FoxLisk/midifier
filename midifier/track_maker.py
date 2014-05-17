@@ -117,6 +117,6 @@ class TrackMaker(object):
       elif tok == Tokens.OTHER_KEYWORD:
         pass
       elif tok == Tokens.INVALID_SOURCE:
-        print 'ERROR'
+        print 'Error in %s on line %d' % (self.filename, parser.line_no)
       tok = parser.next_token()
     return track
